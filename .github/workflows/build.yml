@@ -94,7 +94,11 @@ jobs:
           git config user.email "ci@openos.dev"
           git add -A
           git commit -m "binpkg: ${COMPONENT} ${ARCH} (${GITHUB_SHA:0:8})" || echo "no changes"
-          git push -q origin main
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push -q origin main; then break; fi
+            echo "推送冲突，重试 $i/5..."
+            sleep $((RANDOM % 5 + 3))
+          done
 
       - name: 上报失败原因到共享仓库
         if: failure()
@@ -129,4 +133,8 @@ jobs:
           git config user.email "ci@openos.dev"
           git add -A
           git commit -m "fail-log: ${COMPONENT}/${ARCH} (${GITHUB_SHA:0:8})" || echo "no changes"
-          git push -q origin main
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main && git push -q origin main; then break; fi
+            echo "推送冲突，重试 $i/5..."
+            sleep $((RANDOM % 5 + 3))
+          done
